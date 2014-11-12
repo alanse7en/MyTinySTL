@@ -1,6 +1,6 @@
 //
 //  allocator.h
-//  
+//
 //
 //  Created by deng on 14/11/12.
 //
@@ -16,7 +16,7 @@
 #include "stl_alloc.h"
 
 namespace TinySTL {
-    typedef _default_alloc alloc;
+    typedef default_alloc alloc;
     
     template <typename T>
     class allocator {
@@ -34,42 +34,42 @@ namespace TinySTL {
         static void deallocate(T* p, size_t n);
         static void deallocate(T* p);
         
-        void construct(T* p) {
+        static void construct(T* p) {
             new (p) T ();// placement new
         }
-        void construct(T* p, const T& value) {
+        static void construct(T* p, const T& value) {
             new (p) T (value);
         }
         
-        void destroy(T* p) {
-            p->T();
+        static void destroy(T* p) {
+            p->~T();
         }
-        void destroy(T* first, T* last) {
+        static void destroy(T* first, T* last) {
             for (; first != last; ++first) {
-                first->T();
+                first->~T();
             }
         }
     };
     
     template <typename T>
-    static T* allocator<T>::allocate(size_t n) {
+    T* allocator<T>::allocate(size_t n) {
         return 0==n ? 0 : (T *)(alloc::allocate(n * sizeof(T) ) );
     }
     
     template <typename T>
-    static T* allocator<T>::allocate() {
+    T* allocator<T>::allocate() {
         return (T *)(alloc::allocate(sizeof(T) ) );
     }
     
     template <typename T>
-    static void allocator<T>::deallocate(T* p, size_t n) {
+    void allocator<T>::deallocate(T* p, size_t n) {
         if (n > 0) {
             alloc::deallocate(p,n*sizeof(T) );
         }
     }
     
     template <typename T>
-    static void allocator<T>::deallocate(T* p) {
+    void allocator<T>::deallocate(T* p) {
         alloc::deallocate(p,sizeof(T) );
     }
 }
