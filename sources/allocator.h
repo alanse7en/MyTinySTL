@@ -33,22 +33,6 @@ namespace TinySTL {
         static T* allocate();
         static void deallocate(T* p, size_t n);
         static void deallocate(T* p);
-        
-        static void construct(T* p) {
-            new (p) T ();// placement new
-        }
-        static void construct(T* p, const T& value) {
-            new (p) T (value);
-        }
-        
-        static void destroy(T* p) {
-            p->~T();
-        }
-        static void destroy(T* first, T* last) {
-            for (; first != last; ++first) {
-                first->~T();
-            }
-        }
     };
     
     template <typename T>

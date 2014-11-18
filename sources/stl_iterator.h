@@ -1,9 +1,9 @@
 //
-//  stl_alloc.h
+//  stl_iterator.h
+//  test
 //
-//
-//  Created by deng on 14/11/12.
-//
+//  Created by deng on 14/11/14.
+//  Copyright (c) 2014年 deng. All rights reserved.
 //
 
 #ifndef test_stl_iterator_h
@@ -75,7 +75,7 @@ namespace TinySTL {
     
     template <typename InputIterator>
     inline typename iterator_traits<InputIterator>::difference_type
-    _distance(InputIterator first, InputIterator last, input_iterator_tag) {
+    __distance(InputIterator first, InputIterator last, input_iterator_tag) {
         typename iterator_traits<InputIterator>::difference_type n = 0;
         while (first!=last) {
             ++first; ++n;
@@ -85,23 +85,23 @@ namespace TinySTL {
     
     template <typename RandomAccessIterator>
     inline typename iterator_traits<RandomAccessIterator>::difference_type
-    _distance(RandomAccessIterator first, RandomAccessIterator last, random_access_iterator_tag) {
+    __distance(RandomAccessIterator first, RandomAccessIterator last, random_access_iterator_tag) {
         return last-first;
     }
     
     template <typename InputIterator>
     inline typename iterator_traits<InputIterator>::difference_type
     distance(InputIterator first, InputIterator last) {
-        return _distance(first, last, iterator_category(first));
+        return __distance(first, last, iterator_category(first));
     }
     
     template <typename InputIterator, typename Distance>
-    inline void _advance(InputIterator &i, Distance n, input_iterator_tag) {
+    inline void __advance(InputIterator &i, Distance n, input_iterator_tag) {
         while (n--) ++i;
     }
     
     template <typename BidirectionalIterator, typename Distance>
-    inline void _advance(BidirectionalIterator& i, Distance n, bidirectional_iterator_tag) {
+    inline void __advance(BidirectionalIterator& i, Distance n, bidirectional_iterator_tag) {
         if (n>0)
             while (n--) ++i;
         else
@@ -109,13 +109,13 @@ namespace TinySTL {
     }
     
     template <typename RandomAccessIterator, typename Distance>
-    inline void _advance(RandomAccessIterator &i, Distance n, random_access_iterator_tag) {
+    inline void __advance(RandomAccessIterator &i, Distance n, random_access_iterator_tag) {
         i += n;
     }
     
     template <typename InputIterator, typename Distance>
     inline void advance(InputIterator &i, Distance n) {
-        _advance(i, n, iterator_category(i));
+        __advance(i, n, iterator_category(i));
     }
 }
 

@@ -9,3 +9,4 @@ Try to learn template and GP by building my own version of C++ STL
 ##  Progress
 
 * Finished the allocator(*with sub-allocation but without multi-threads*)
+* Finished type_traits and memory functions(*uninitialized_fill, uninitialized_fill_n, uninitialized_copy*)

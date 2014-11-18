@@ -18,8 +18,8 @@ namespace TinySTL {
     private:
         static void* oom_malloc(size_t);
         static void* oom_realloc(void*, size_t);
-        typedef void (* _oom_handler) (void);
-        static _oom_handler _malloc_alloc_oom_handler;
+        typedef void (* __oom_handler) (void);
+        static __oom_handler __malloc_alloc_oom_handler;
     public:
         
         static void* allocate(size_t n) {
@@ -42,23 +42,23 @@ namespace TinySTL {
             free(p);
         }
         // do something like std::set_new_handler
-        static _oom_handler set_malloc_handler(_oom_handler new_handler) {
-            _oom_handler old_handler = _malloc_alloc_oom_handler;
-            _malloc_alloc_oom_handler = new_handler;
+        static __oom_handler set_malloc_handler(__oom_handler new_handler) {
+            __oom_handler old_handler = __malloc_alloc_oom_handler;
+            __malloc_alloc_oom_handler = new_handler;
             return old_handler;
         }
     };
     
-    malloc_alloc::_oom_handler malloc_alloc::_malloc_alloc_oom_handler = 0;
+    malloc_alloc::__oom_handler malloc_alloc::__malloc_alloc_oom_handler = 0;
     
     void* malloc_alloc::oom_malloc(size_t n) {
         void* ret;
         for (; ; ) {
-            if (0 == _malloc_alloc_oom_handler) {
+            if (0 == __malloc_alloc_oom_handler) {
                 std::cerr << "out of memory" << std::endl;
                 exit(1);
             }
-            (*_malloc_alloc_oom_handler)();
+            (*__malloc_alloc_oom_handler)();
             ret = malloc(n);
             if (ret) {
                 return ret;
@@ -69,10 +69,10 @@ namespace TinySTL {
     void* malloc_alloc::oom_realloc(void* p, size_t n) {
         void* ret;
         for (; ; ) {
-            if (0 == _malloc_alloc_oom_handler) {
+            if (0 == __malloc_alloc_oom_handler) {
                 std::cerr << "out of memory" << endl;
             }
-            (*_malloc_alloc_oom_handler)();
+            (*__malloc_alloc_oom_handler)();
             ret = realloc(p,n);
             if (ret) {
                 return ret;
@@ -80,9 +80,13 @@ namespace TinySTL {
         }
     }
     
-    enum {_ALIGN = 8};
-    enum {_MAX_BYTES = 128};
-    enum {_NFREELISTS = _MAX_BYTES/_ALIGN};
+    
+    /*
+     sub-allocation allocator
+     */
+    enum {__ALIGN = 8};
+    enum {__MAX_BYTES = 128};
+    enum {__NFREELISTS = __MAX_BYTES/__ALIGN};
     
     class default_alloc{
     private:
@@ -92,13 +96,13 @@ namespace TinySTL {
         };
         
         static size_t ROUND_UP(size_t n) {
-            return ( (n + _ALIGN -1) & (_ALIGN-1) );
+            return ( (n + __ALIGN -1) & (__ALIGN-1) );
         }
         
-        static obj* volatile free_list[_NFREELISTS];
+        static obj* volatile free_list[__NFREELISTS];
         
         static size_t FREELIST_INDEX(size_t n) {
-            return ( (n+_ALIGN-1) / _ALIGN-1);
+            return ( (n+__ALIGN-1) / __ALIGN-1);
         }
         
         static void* refill(size_t n);
@@ -114,7 +118,7 @@ namespace TinySTL {
             obj* ret;
             obj* volatile * my_free_list;
             
-            if (n > _MAX_BYTES) {
+            if (n > __MAX_BYTES) {
                 return malloc_alloc::allocate(n);
             }
             my_free_list = free_list + FREELIST_INDEX(n);
@@ -128,7 +132,7 @@ namespace TinySTL {
         }
         
         static void deallocate(void* p, size_t n) {
-            if (n > _MAX_BYTES) {
+            if (n > __MAX_BYTES) {
                 malloc_alloc::deallocate(p, n);
             }
             else {
@@ -149,7 +153,7 @@ namespace TinySTL {
     char* default_alloc::start_free = 0;
     char* default_alloc::end_free = 0;
     size_t default_alloc::heap_size = 0;
-    default_alloc::obj* volatile default_alloc::free_list[_NFREELISTS] =
+    default_alloc::obj* volatile default_alloc::free_list[__NFREELISTS] =
     {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
     
     void* default_alloc::refill(size_t n) {
@@ -215,7 +219,7 @@ namespace TinySTL {
             if (0 == start_free) {
                 obj* volatile * my_free_list = free_list;
                 obj* p;
-                for (size_t i = size; i < _MAX_BYTES; i += _ALIGN) {
+                for (size_t i = size; i < __MAX_BYTES; i += __ALIGN) {
                     my_free_list = free_list + FREELIST_INDEX(i);
                     p = *my_free_list;
                     if (0 != p) {
