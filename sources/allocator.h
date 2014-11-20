@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <climits>
 #include "stl_alloc.h"
+#include "stl_construct.h"
 
 namespace TinySTL {
     typedef default_alloc alloc;
@@ -33,27 +34,43 @@ namespace TinySTL {
         static T* allocate();
         static void deallocate(T* p, size_t n);
         static void deallocate(T* p);
+        
+        static void construct(T* p) {
+            __construct(p);
+        }
+        
+        static void construct(T* p, const T& value) {
+            __construct(p,value);
+        }
+        
+        static void destroy(T* p) {
+            __destroy(p);
+        }
+        
+        static void destroy(T* first, T* last) {
+            __destroy(first, last);
+        }
     };
     
     template <typename T>
-    T* allocator<T>::allocate(size_t n) {
+     T* allocator<T>::allocate(size_t n) {
         return 0==n ? 0 : (T *)(alloc::allocate(n * sizeof(T) ) );
     }
     
     template <typename T>
-    T* allocator<T>::allocate() {
+     T* allocator<T>::allocate() {
         return (T *)(alloc::allocate(sizeof(T) ) );
     }
     
     template <typename T>
-    void allocator<T>::deallocate(T* p, size_t n) {
+     void allocator<T>::deallocate(T* p, size_t n) {
         if (n > 0) {
             alloc::deallocate(p,n*sizeof(T) );
         }
     }
     
     template <typename T>
-    void allocator<T>::deallocate(T* p) {
+     void allocator<T>::deallocate(T* p) {
         alloc::deallocate(p,sizeof(T) );
     }
 }

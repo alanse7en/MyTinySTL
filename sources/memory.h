@@ -12,37 +12,15 @@
 #include "allocator.h"
 #include "type_traits.h"
 #include "stl_iterator.h"
+//#include "stl_construct.h"
 
 namespace TinySTL {
-    
-    template <typename T>
-    void construct(T* p) {
-        new (p) T ();// placement new
-    }
-    
-    template <typename T>
-    void construct(T* p, const T& value) {
-        new (p) T (value);
-    }
-    
-    
-    template <typename T>
-    void destroy(T* p) {
-        p->~T();
-    }
-    
-    template <typename T>
-    void destroy(T* first, T* last) {
-        for (; first != last; ++first) {
-            first->~T();
-        }
-    }
     
     template <typename ForwardIterator, typename Size, typename T>
     inline ForwardIterator __uninitialized_fill_n_aux(ForwardIterator first, Size n, const T& x, __false_type) {
         ForwardIterator curr = first;
         for(; n > 0; --n, ++curr)
-            construct(&*curr, x);
+            __construct(&*curr, x);
         return curr;
     }
     
@@ -71,7 +49,7 @@ namespace TinySTL {
     inline ForwardIterator __uninitialized_copy_aux(InputIterator first, InputIterator last, ForwardIterator result, __false_type) {
         ForwardIterator curr = result;
         for(;first != last; ++curr, ++first)
-            construct(&*curr, *first);
+            __construct(&*curr, *first);
         return curr;
     }
     
@@ -100,7 +78,7 @@ namespace TinySTL {
     inline void __uninitialized_fill_aux(ForwardIterator first, ForwardIterator last, const T& x, __false_type) {
         ForwardIterator curr = first;
         for(; curr != last; ++curr)
-            construct(&*curr, x);
+            __construct(&*curr, x);
     }
     
     template <typename ForwardIterator, typename T>
