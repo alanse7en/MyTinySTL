@@ -12,7 +12,7 @@
 #include "allocator.h"
 #include "type_traits.h"
 #include "stl_iterator.h"
-//#include "stl_construct.h"
+#include "algorithms.h"
 
 namespace TinySTL {
     
@@ -31,7 +31,7 @@ namespace TinySTL {
     
     template <typename ForwardIterator, typename Size, typename T>
     inline ForwardIterator __uninitialized_fill_n(ForwardIterator first, Size n, const T&x, T*) {
-        typedef typename __type_traits<T*>::is_POD_type is_POD;
+        typedef typename __type_traits<T>::is_POD_type is_POD;
         return __uninitialized_fill_n_aux(first, n, x, is_POD());
     }
     
@@ -42,14 +42,14 @@ namespace TinySTL {
     
     template <typename InputIterator, typename ForwardIterator>
     inline ForwardIterator __uninitialized_copy_aux(InputIterator first, InputIterator last, ForwardIterator result, __true_type) {
-        return copy(first, last, result);
+        return TinySTL::copy(first, last, result);
     }
     
     template <typename InputIterator, typename ForwardIterator>
     inline ForwardIterator __uninitialized_copy_aux(InputIterator first, InputIterator last, ForwardIterator result, __false_type) {
         ForwardIterator curr = result;
         for(;first != last; ++curr, ++first)
-            __construct(&*curr, *first);
+            TinySTL::__construct(&*curr, *first);
         return curr;
     }
     
@@ -65,12 +65,12 @@ namespace TinySTL {
     }
     
     inline char* uninitialized_copy(const char* first, const char* last, char* result) {
-        memmove(result, first, last-first);
+        std::memmove(result, first, last-first);
         return result + (last-first);
     }
     
     inline wchar_t* uninitialized_copy(const wchar_t* first, const wchar_t* last, wchar_t* result) {
-        memmove(result, first, sizeof(wchar_t) * (last-first) );
+        std::memmove(result, first, sizeof(wchar_t) * (last-first) );
         return result + (last-first);
     }
     
@@ -83,7 +83,7 @@ namespace TinySTL {
     
     template <typename ForwardIterator, typename T>
     inline void __uninitialized_fill_aux(ForwardIterator first, ForwardIterator last, const T& x, __true_type) {
-        return fill(first, last, x);
+        return std::fill(first, last, x);
     }
     
     template <typename ForwardIterator, typename T>
@@ -95,6 +95,32 @@ namespace TinySTL {
     template <typename ForwardIterator, typename T>
     inline void uninitialized_fill(ForwardIterator first, ForwardIterator last, const T& x) {
         return __uninitialized_fill(first, last, x, value_type(first));
+    }
+    
+    template <typename InputIterator, typename ForwardIterator>
+    inline ForwardIterator __uninitialized_move_aux(InputIterator first, InputIterator last, ForwardIterator result, __true_type) {
+        typedef typename iterator_traits<InputIterator>::value_type value_type;
+        std::memmove(result, first, sizeof(value_type)*(last-first));
+        return result + (last - first);
+    }
+    
+    template <typename InputIterator, typename ForwardIterator>
+    inline ForwardIterator __uninitialized_move_aux(InputIterator first, InputIterator last, ForwardIterator result, __false_type) {
+        ForwardIterator curr = result;
+        for(;first != last; ++curr, ++first)
+            new (curr) typename iterator_traits<InputIterator>::value_type (std::move(*first));
+        return curr;
+    }
+    
+    template <typename InputIterator, typename ForwardIterator, typename T>
+    inline ForwardIterator __uninitialized_move(InputIterator first, InputIterator last, ForwardIterator result, T*) {
+        typedef typename __type_traits<T>::is_POD_type is_POD;
+        return __uninitialized_move_aux(first, last, result, is_POD());
+    }
+    
+    template <typename Inputiterator, typename ForwardIterator>
+    inline ForwardIterator uninitialized_move(Inputiterator first, Inputiterator last, ForwardIterator result) {
+        return __uninitialized_move(first, last, result, value_type(result));
     }
 }
 

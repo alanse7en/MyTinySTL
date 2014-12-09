@@ -15,9 +15,14 @@ namespace TinySTL {
         new (p) T ();// placement new
     }
     
-    template <typename T>
-    void __construct(T* p, const T& value) {
-        new (p) T (value);
+//    template <typename T>
+//    void __construct(T* p, const T& value) {
+//        new (p) T (value);
+//    }
+    
+    template <typename T1, typename... T2>
+    void __construct(T1* p, T2&&... value) {
+        new (static_cast<void*>(p)) T1 (std::forward<T2>(value)...);
     }
     
     template <typename T>

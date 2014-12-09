@@ -70,7 +70,7 @@ namespace TinySTL {
         void* ret;
         for (; ; ) {
             if (0 == __malloc_alloc_oom_handler) {
-                std::cerr << "out of memory" << endl;
+                std::cerr << "out of memory" << std::endl;
             }
             (*__malloc_alloc_oom_handler)();
             ret = realloc(p,n);
@@ -96,7 +96,7 @@ namespace TinySTL {
         };
         
         static size_t ROUND_UP(size_t n) {
-            return ( (n + __ALIGN -1) & (__ALIGN-1) );
+            return ( (n + __ALIGN -1) & ~(__ALIGN-1) );
         }
         
         static obj* volatile free_list[__NFREELISTS];
