@@ -44,6 +44,17 @@ namespace TinySTL {
         }
         return result;
     }
+    
+    template <typename InputIterator>
+    size_t __distance(InputIterator first, InputIterator last) {
+        size_t result = 0;
+        for (; first != last; ++first) {
+            ++result;
+        }
+        return result;
+    }
+    
+// end of namespace
 }
 
 

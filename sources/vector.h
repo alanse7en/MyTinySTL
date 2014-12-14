@@ -13,7 +13,7 @@
 #include "algorithms.h"
 
 namespace TinySTL {
-    template <typename T, typename  Alloc = allocator<T> >
+    template <typename T, typename  Alloc = alloc >
     class vector {
     public:
         typedef T                value_type;
@@ -27,7 +27,7 @@ namespace TinySTL {
         typedef ptrdiff_t        difference_type;
         
     protected:
-        typedef Alloc data_allocator;
+        typedef allocator<T,Alloc> data_allocator;
         
     private:
         iterator start;
@@ -53,14 +53,17 @@ namespace TinySTL {
                 data_allocator::deallocate(start,end_of_storage-start);
             }
         }
-        // iterators
+        
+        // Iterators
         iterator begin() { return start;}
         const_iterator begin() const { return start;}
         const_iterator cbegin() const { return start;}
+        
         iterator end() { return finish;}
         const_iterator end() const { return finish;}
         const_iterator cend() const { return finish;}
-        // size and capacity
+        
+        // Capacity
         size_type size() const { return finish - start;}
         size_type capacity() const { return end_of_storage - start;}
         bool empty() const { return start == finish;}
@@ -69,22 +72,29 @@ namespace TinySTL {
             data_allocator::deallocate(finish,end_of_storage-finish);
             end_of_storage = finish;
         }
-        // element access
+        
+        // Element access
         reference at(size_type position) { return *(start+position);}
         const_reference at(size_type position) const { return *(start+position);}
+        
         reference operator[] (size_type position) { return *(start+position);}
         const_reference operator[] (size_type position) const { return *(start+position);}
+        
         reference front() { return *start;}
         const_reference front() const { return *start;}
+        
         reference back() {return *(finish-1);}
         const_reference back() const { return *(finish-1);}
+        
         pointer data() { return start;}
         const T* data() const { return start;}
-        // modify vector
+        
+        // Modifiers
         void clear(){
             data_allocator::destroy(start, finish);
             finish = start;
         }
+        
         void swap(vector& vec) {
             if (this != &vec) {
                 std::swap(start, vec.start);
@@ -92,28 +102,36 @@ namespace TinySTL {
                 std::swap(end_of_storage, vec.end_of_storage);
             }
         }
+        
         template <typename ...Args>
         iterator emplace(const_iterator position, Args&&... args);
         template <typename ...Args>
         void emplace_back(Args&&... args);
+        
         iterator erase(const_iterator position);
         iterator erase(const_iterator first, const_iterator last);
-        template <typename Tp>
-        void push_back(Tp&& x);
+        
+        void push_back(const T& x);
+        void push_back(T&& x);
+        
         void pop_back() {
             --finish;
             data_allocator::destroy(finish);
         }
+        
         template <typename Tp>
         iterator insert(const_iterator position, Tp&& x);
         iterator insert(const_iterator position, size_type n, const T& x);
         template <typename InputIterator>
         iterator insert(const_iterator position, InputIterator first, InputIterator last);
         iterator insert(const_iterator position, std::initializer_list<T> ilist);
+        
         void resize(size_type n, const_reference x);
         void resize(size_type n);
-        // allocator
+        
+        // Allocator
         data_allocator get_allocator() const { return data_allocator();}
+        
     protected:
         void allocate_and_fill(size_type n, const T& x) {
             start = data_allocator::allocate(n);
@@ -123,7 +141,7 @@ namespace TinySTL {
         template <typename InputIterator>
         void allocate_and_copy(InputIterator first, InputIterator last) {
             start = data_allocator::allocate(last-first);
-            finish = uninitialized_copy(first, last, start);
+            finish = TinySTL::uninitialized_copy(first, last, start);
             end_of_storage = finish;
         }
         template <typename Integer>
@@ -320,9 +338,13 @@ namespace TinySTL {
 
     
     template <typename T, typename Alloc>
-    template <typename Tp>
-    void vector<T,Alloc>::push_back(Tp&& x) {
-        emplace_back(std::forward<Tp>(x));
+    void vector<T,Alloc>::push_back(const T& x) {
+        emplace_back(x);
+    }
+    
+    template <typename T, typename Alloc>
+    void vector<T,Alloc>::push_back(T&& x) {
+        emplace_back(std::forward<T>(x));
     }
     
     template <typename T, typename Alloc>

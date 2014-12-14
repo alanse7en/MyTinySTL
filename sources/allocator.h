@@ -19,7 +19,7 @@
 namespace TinySTL {
     typedef default_alloc alloc;
     
-    template <typename T>
+    template <typename T, typename Alloc = alloc>
     class allocator {
     public:
         typedef T          value_type;
@@ -52,25 +52,25 @@ namespace TinySTL {
         }
     };
     
-    template <typename T>
-     T* allocator<T>::allocate(size_t n) {
+    template <typename T, typename Alloc>
+     T* allocator<T,Alloc>::allocate(size_t n) {
         return 0==n ? 0 : (T *)(alloc::allocate(n * sizeof(T) ) );
     }
     
-    template <typename T>
-     T* allocator<T>::allocate() {
+    template <typename T, typename Alloc>
+     T* allocator<T,Alloc>::allocate() {
         return (T *)(alloc::allocate(sizeof(T) ) );
     }
     
-    template <typename T>
-     void allocator<T>::deallocate(T* p, size_t n) {
+    template <typename T, typename Alloc>
+     void allocator<T,Alloc>::deallocate(T* p, size_t n) {
         if (n > 0) {
             alloc::deallocate(p,n*sizeof(T) );
         }
     }
     
-    template <typename T>
-     void allocator<T>::deallocate(T* p) {
+    template <typename T, typename Alloc>
+     void allocator<T,Alloc>::deallocate(T* p) {
         alloc::deallocate(p,sizeof(T) );
     }
 }
