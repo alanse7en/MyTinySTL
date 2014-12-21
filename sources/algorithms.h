@@ -14,7 +14,7 @@ namespace TinySTL {
     template <typename InputIterator, typename ForwardIterator>
     ForwardIterator copy_backward(InputIterator first, InputIterator last, ForwardIterator result)
     {
-        while (first != last) {
+        while (first < last) {
             *(--result) = *(--last);
         }
         return result;
@@ -23,7 +23,7 @@ namespace TinySTL {
     template <typename InputIterator, typename ForwardIterator>
     ForwardIterator move_backward(InputIterator first, InputIterator last, ForwardIterator result)
     {
-        while (first != last) {
+        while (first < last) {
             *(--result) = std::move(*(--last));
         }
         return result;
@@ -31,7 +31,7 @@ namespace TinySTL {
     
     template <typename InputIterator, typename OutputIterator>
     OutputIterator copy(InputIterator first, InputIterator last, OutputIterator result) {
-        while (first != last) {
+        while (first < last) {
             *result++ = *first++;
         }
         return result;
@@ -39,7 +39,7 @@ namespace TinySTL {
     
     template <typename InputIterator, typename OutputIterator>
     OutputIterator move(InputIterator first, InputIterator last, OutputIterator result) {
-        while (first != last) {
+        while (first < last) {
             *result++ = std::move(*first++);
         }
         return result;
@@ -48,7 +48,7 @@ namespace TinySTL {
     template <typename InputIterator>
     size_t __distance(InputIterator first, InputIterator last) {
         size_t result = 0;
-        for (; first != last; ++first) {
+        for (; first < last; ++first) {
             ++result;
         }
         return result;

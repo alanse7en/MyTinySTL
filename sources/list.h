@@ -116,7 +116,7 @@ namespace TinySTL {
         void transfer(iterator possition, iterator first, iterator last);
         
     public:
-        // Constructors and deconstructor
+        // Constructors and destructor
         list() {
             empty_initialize();
         }
@@ -291,12 +291,18 @@ namespace TinySTL {
     protected:
         
     public:
-        friend bool operator== (const list& lhs, const list& rhs);
-        friend bool operator!= (const list& lhs, const list& rhs);
-        friend bool operator>= (const list& lhs, const list& rhs);
-        friend bool operator<= (const list& lhs, const list& rhs);
-        friend bool operator> (const list& lhs, const list& rhs);
-        friend bool operator< (const list& lhs, const list& rhs);
+        template < class t, class alloc >
+        friend bool operator==( const list<t,alloc>& lhs, const list<t,alloc>& rhs );
+        template < class t, class alloc >
+        friend bool operator!=( const list<t,alloc>& lhs, const list<t,alloc>& rhs );
+        template < class t, class alloc >
+        friend bool operator>=( const list<t,alloc>& lhs, const list<t,alloc>& rhs );
+        template < class t, class alloc >
+        friend bool operator<=( const list<t,alloc>& lhs, const list<t,alloc>& rhs );
+        template < class t, class alloc >
+        friend bool operator>( const list<t,alloc>& lhs, const list<t,alloc>& rhs );
+        template < class t, class alloc >
+        friend bool operator<( const list<t,alloc>& lhs, const list<t,alloc>& rhs );
     };
     
     
@@ -654,6 +660,20 @@ namespace TinySTL {
         swap(counter[fill-1]);
     }
     
+    template < class t, class alloc >
+    bool operator==( const list<t,alloc>& lhs, const list<t,alloc>& rhs ) {
+        if ( lhs.size() == rhs.size() ) {
+            auto ite1 = lhs.begin();
+            auto ite2 = rhs.begin();
+            for (typename vector<t,alloc>::size_type i = 0; i != lhs.size(); ++i) {
+                if (*ite1 != *ite2) return false;
+                else                ++ite1; ++ite2;
+            }
+            return true;
+        }
+        else
+            return false;
+    }
     
 // end of namespace
 }

@@ -12,3 +12,4 @@ Try to learn template and GP by building my own version of C++ STL
 * Finished type_traits and memory functions(*uninitialized_fill, uninitialized_fill_n, uninitialized_copy*)
 * Finished vector(*C++11 features*)
 * Finished list(*C++11 features*)
+* Finished deque(*C++11 features*)
