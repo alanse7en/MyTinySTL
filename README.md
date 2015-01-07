@@ -13,3 +13,4 @@ Try to learn template and GP by building my own version of C++ STL
 * Finished vector(*C++11 features*)
 * Finished list(*C++11 features*)
 * Finished deque(*C++11 features*)
+* Finished red_black_tree
