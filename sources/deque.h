@@ -10,6 +10,7 @@
 #define test_deque_h
 
 #include <cstddef>
+#include <initializer_list>
 #include "allocator.h"
 #include "algorithms.h"
 #include "stl_iterator.h"

@@ -9,6 +9,7 @@
 #ifndef test_vector_h
 #define test_vector_h
 
+#include <initializer_list>
 #include "memory.h"
 #include "algorithms.h"
 

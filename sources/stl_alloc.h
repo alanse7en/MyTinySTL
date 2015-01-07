@@ -9,6 +9,8 @@
 #ifndef _stl_alloc_h
 #define _stl_alloc_h
 
+#include <iostream>
+
 namespace TinySTL {
     /*
      malloc-based allocator

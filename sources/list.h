@@ -22,7 +22,10 @@ namespace TinySTL {
         void*  next;
     };
     
-    template <typename T>
+    template <class T>
+    struct __list_const_iterator;
+    
+    template <class T>
     struct __list_iterator{
         typedef bidirectional_iterator_tag iterator_category;
         typedef T value_type;
@@ -37,11 +40,8 @@ namespace TinySTL {
         __list_iterator() {}
         __list_iterator(const __list_iterator& x) : node_ptr(x.node_ptr) {}
         
-        bool operator == (const __list_iterator& x) const { return node_ptr == x.node_ptr;}
-        bool operator != (const __list_iterator& x) const { return node_ptr != x.node_ptr;}
-        
-        reference operator* () const { return  (*node_ptr).data;}
-        pointer operator-> () const { return &(operator*());}
+        reference operator* () const { return  (reference)((*node_ptr).data);}
+        pointer operator-> () const { return (pointer)(&(operator*()));}
         
         __list_iterator& operator++() {
             node_ptr = (link_type)((*node_ptr).next);
@@ -62,6 +62,72 @@ namespace TinySTL {
             --(*this);
             return tmp;
         }
+        
+        bool operator==( const __list_iterator& x) {
+            return (node_ptr == x.node_ptr);
+        }
+        bool operator==( const __list_const_iterator<T>& x) {
+            return (node_ptr == x.node_ptr);
+        }
+        bool operator!=( const __list_iterator& x) {
+            return (node_ptr != x.node_ptr);
+        }
+        bool operator!=( const __list_const_iterator<T>& x) {
+            return (node_ptr != x.node_ptr);
+        }
+    };
+    
+    template <class T>
+    struct __list_const_iterator{
+        typedef bidirectional_iterator_tag iterator_category;
+        typedef T value_type;
+        typedef const T* pointer;
+        typedef const T& reference;
+        typedef ptrdiff_t difference_type;
+        typedef __list_node<T>* link_type;
+        
+        link_type node_ptr;
+        
+        __list_const_iterator(link_type x) : node_ptr(x) {}
+        __list_const_iterator() {}
+        __list_const_iterator(const __list_iterator<T>& x) : node_ptr(x.node_ptr) {}
+        __list_const_iterator(const __list_const_iterator& x) : node_ptr(x.node_ptr) {}
+        
+        reference operator* () const { return  (reference)((*node_ptr).data);}
+        pointer operator-> () const { return (pointer)(&(operator*()));}
+        
+        __list_const_iterator& operator++() {
+            node_ptr = (link_type)((*node_ptr).next);
+            return *this;
+        }
+        __list_const_iterator operator++(int) {
+            __list_const_iterator tmp = *this;
+            ++(*this);
+            return tmp;
+        }
+        
+        __list_const_iterator& operator--() {
+            node_ptr = (link_type)((*node_ptr).prev);
+            return *this;
+        }
+        __list_const_iterator operator--(int) {
+            __list_const_iterator tmp = *this;
+            --(*this);
+            return tmp;
+        }
+        
+        bool operator==( const __list_const_iterator& x) {
+            return (node_ptr == x.node_ptr);
+        }
+        bool operator==( const __list_iterator<T>& x) {
+            return (node_ptr == x.node_ptr);
+        }
+        bool operator!=( const __list_const_iterator& x) {
+            return (node_ptr != x.node_ptr);
+        }
+        bool operator!=( const __list_iterator<T>& x) {
+            return (node_ptr != x.node_ptr);
+        }
     };
     
     template <typename T , typename Alloc = alloc>
@@ -69,7 +135,7 @@ namespace TinySTL {
     public:
         typedef __list_node<T>* link_type;
         typedef __list_iterator<T> iterator;
-        typedef const iterator const_iterator;
+        typedef __list_const_iterator<T> const_iterator;
         typedef T value_type;
         typedef T* pointer;
         typedef const T* const_pointer;
@@ -131,7 +197,7 @@ namespace TinySTL {
             list_aux(first, last, std::is_integral<InputIterator>());
         }
         list(const list& other ) {
-            list_aux(other.begin(), other.end(), std::false_type());
+            list_aux(other.cbegin(), other.cend(), std::false_type());
         }
         list(list&& other) {
             empty_initialize();
@@ -142,7 +208,7 @@ namespace TinySTL {
         }
         ~list() {
             iterator ite = begin();
-            iterator last = cend();
+            iterator last = end();
             for (; ite != last; ++ite) {
                 destroy_node(ite.node_ptr);
             }
@@ -165,17 +231,17 @@ namespace TinySTL {
         
         // Iterators
         iterator begin() { return iterator((link_type) end_ptr->next);}
-        const_iterator begin() const { return iterator((link_type) end_ptr->next);}
-        const_iterator cbegin() const { return iterator((link_type) end_ptr->next);}
+        const_iterator begin() const { return const_iterator((link_type) end_ptr->next);}
+        const_iterator cbegin() const { return const_iterator((link_type) end_ptr->next);}
         
         iterator end() { return iterator(end_ptr);}
-        const_iterator end() const { return iterator(end_ptr);}
-        const_iterator cend() const { return iterator(end_ptr);}
+        const_iterator end() const { return const_iterator(end_ptr);}
+        const_iterator cend() const { return const_iterator(end_ptr);}
         
         // Capacity
         bool empty() const { return end_ptr == end_ptr->next;}
         size_type size() const {
-            return TinySTL::__distance(begin(), end());
+            return TinySTL::__distance(cbegin(), cend());
         }
         
         // Element access
@@ -210,7 +276,7 @@ namespace TinySTL {
         }
         template <typename... Args >
         void emplace_front(Args&&... args) {
-            emplace(begin(), std::forward<Args>(args)...);
+            emplace(cbegin(), std::forward<Args>(args)...);
         }
         
         iterator erase(const_iterator pos) {
