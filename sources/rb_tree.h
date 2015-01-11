@@ -288,15 +288,34 @@ namespace TinySTL {
         link_type& leftmost() const { return (link_type&)header->left;}
         link_type& rightmost() const { return (link_type&)header->right;}
         
-        static link_type& left(link_type x) { return (link_type&) x->left;}
-        static link_type& right(link_type x) { return (link_type&) x->right;}
-        static link_type& parent(link_type x) { return (link_type&) x->parent;}
-        static Value& value(link_type x) { return x->value;}
-        static Key& key(link_type x) { return KeyOfValue()(value(x));}
-        static color_type& color(link_type x) {
+        static link_type left(link_type x) {
             if (x==0)
-                return (color_type&)__rb_tree_black;
-            return (color_type&) x->color;
+                return x;
+            return x->left;
+        }
+        static link_type right(link_type x) {
+            if (x==0)
+                return 0;
+            return x->right;
+        }
+        static link_type parent(link_type x) {
+            if (x==0)
+                return 0;
+            return x->parent;
+        }
+        static Value value(link_type x) { return x->value;}
+        static Key key(link_type x) { return KeyOfValue()(value(x));}
+        static color_type color(link_type x) {
+            if (x==0)
+                return __rb_tree_black;
+            return x->color;
+        }
+        
+        static bool isRed(link_type x) {
+            
+            if (color(x) == __rb_tree_black)
+                return false;
+            return true;
         }
         
         static link_type minimum(link_type x) {
@@ -311,7 +330,7 @@ namespace TinySTL {
         void __erase(link_type x);
         void init() {
             header = get_node();
-            color(header) = __rb_tree_red;
+            header->color = __rb_tree_red;
             
             root() = 0;
             leftmost() = header;
@@ -352,10 +371,21 @@ namespace TinySTL {
         }
         
         link_type& colorFlip(link_type h) {
-            h->color        =  !h->color;
+            h->color        = !h->color;
             h->left->color  = !h->left->color;
             h->right->color = !h->right->color;
             return (link_type&)h;
+        }
+        
+        link_type& fixUp(link_type x) {
+            if (color(x->right)==__rb_tree_red)
+                x = rotateLeft(x);
+            if (color(x->left)==__rb_tree_red && color(x->left->left)==__rb_tree_red)
+                x = rotateRight(x);
+            if (color(x->left)==__rb_tree_red && color(x->right)==__rb_tree_red)
+                colorFlip(x);
+            
+            return (link_type&)x;
         }
         
         link_type& __insert(link_type x, const Value& v) {
@@ -368,6 +398,8 @@ namespace TinySTL {
                 return (link_type&)tmp;
                 
             }
+            
+            
             Key k = KeyOfValue()(v);
             int cmp = key_compare(k,key(x));
             if (cmp == 0) x->value = v;
@@ -383,13 +415,90 @@ namespace TinySTL {
             }
             
             // Fix up rb tree
-            if (color(x->right)==__rb_tree_red)
-                x = rotateLeft(x);
-            if (color(x->left)==__rb_tree_red && color(x->left->left)==__rb_tree_red)
-                x = rotateRight(x);
-            if (color(x->left)==__rb_tree_red && color(x->right)==__rb_tree_red)
-                colorFlip(x);
-            return (link_type&)x;
+            return fixUp(x);
+        }
+        
+        link_type& moveRedLeft(link_type h)
+        {
+            colorFlip(h);
+            if (isRed(left(right(h) ) ) ) {
+                h->right = rotateRight(h->right);
+                h = rotateLeft(h);
+                colorFlip(h);
+            }
+            return (link_type&)h;
+        }
+        
+        link_type& moveRedRight(link_type h)
+        {
+            colorFlip(h);
+            if (isRed(left(left(h) ) ) )
+            {
+                h = rotateRight(h);
+                colorFlip(h);
+            }
+            return h;
+        }
+        
+        link_type deleteMin(link_type h)
+        {
+            if (left(h) == 0) {
+                destroy_node(h);
+                return 0;
+            }
+            
+            if (!isRed(left(h)) && !isRed(left(left(h))) )
+                h = moveRedLeft(h);
+            
+            
+            link_type tmp = deleteMin(h->left);
+            h->left = tmp;
+            if (tmp != 0)
+                tmp->parent = h;
+            
+            return fixUp(h);
+        }
+        
+        link_type deleteNode(link_type h, Key k)
+        {
+            int cmp = key_compare(k,key(h));
+            if (cmp < 0) {
+                if (!isRed(left(h)) && !isRed(left(left(h))))
+                    h = moveRedLeft(h);
+                link_type tmp =  deleteNode(h->left, k);
+                h->left = tmp;
+                if (tmp != 0)
+                    tmp->parent = h;
+            }
+            else {
+                if (isRed(left(h))) {
+                    h = rotateRight(h);
+                    cmp = -1;
+                }
+                if (cmp == 0 && (right(h) == 0)) {
+                    destroy_node(h);
+                    return 0;
+                }
+                if (!isRed(right(h)) && !isRed(left(right(h))))
+                    h = moveRedRight(h);
+                
+                if (cmp == 0) {
+                    link_type tmp = minimum(h->right);
+                    h->value = tmp->value;
+                    tmp = deleteMin(h->right);
+                    h->right = tmp;
+                    if (tmp != 0)
+                        tmp->parent = h;
+                }
+                else {
+                    link_type tmp = deleteNode(h->right, k);
+                    h->right = tmp;
+                    if (tmp != 0)
+                        tmp->parent = h;
+                }
+            }
+            
+            return fixUp(h);
         }
         
     public:
@@ -410,7 +519,7 @@ namespace TinySTL {
         size_type max_size() const { return size_type(-1);}
         
         iterator find(const Key& k) {
-            link_type y = header;
+//            link_type y = header;
             link_type x = root();
             
             while (x != 0) {
@@ -447,6 +556,58 @@ namespace TinySTL {
             // Add node count number
             ++node_count;
             return tmp;
+        }
+        
+        void deleteNode(Key k) {
+//            iterator ite = find(k);
+            link_type tmp = deleteNode(root(), k);
+            if (tmp != 0) {
+                tmp->color = __rb_tree_black;
+                tmp->parent = header;
+                header->parent = tmp;
+                // Change leftmost
+                while (tmp->left != 0)
+                    tmp = tmp->left;
+                header->left = tmp;
+                // Change rightmost
+                tmp = root();
+                while (tmp->right != 0)
+                    tmp = tmp->right;
+                header->right = tmp;
+                // Decrease node count number
+                --node_count;
+            }
+            else {
+                header->parent = 0;
+                header->left  = header;
+                header->right = header;
+            }
+        }
+        
+        void deleteMin() {
+            link_type tmp = deleteMin(root());
+            if (tmp != 0) {
+                tmp->color = __rb_tree_black;
+                tmp->parent = header;
+                header->parent = tmp;
+                // Change leftmost
+                while (tmp->left != 0)
+                    tmp = tmp->left;
+                header->left = tmp;
+                // Change rightmost
+                tmp = root();
+                while (tmp->right != 0)
+                    tmp = tmp->right;
+                header->right = tmp;
+                // Decrease node count number
+                --node_count;
+            }
+            else {
+                header->parent = 0;
+                header->left  = header;
+                header->right = header;
+            }
+            
         }
         // end of rb_tree
     };

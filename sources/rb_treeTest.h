@@ -23,31 +23,33 @@ class IntRBTreeTest : public testing::Test {
 public:
     typedef TinySTL::rb_tree<int, int, TinySTL::identity, TinySTL::less<int> > IntTree;
     IntTree tree;
+    int size;
     
     virtual void SetUp() {
-        for (int i = -1e3; i <= 1e3; ++i) {
+        size = 1e3;
+        for (int i = -1*size; i <= size; ++i) {
             tree.insert_equal(i);
         }
     }
 };
 
 TEST_F(IntRBTreeTest, FindTest) {
-    auto ite = tree.find(1);
-    EXPECT_EQ(1, *ite);
-    ite = tree.find(10);
-    EXPECT_EQ(10, *ite);
-    ite = tree.find(-100);
-    EXPECT_EQ(-100, *ite);
-    ite = tree.find(1000);
-    EXPECT_EQ(1000, *ite);
-    ite = tree.find(1001);
-    EXPECT_EQ(tree.end(), ite);
-    ite = tree.find(-1001);
-    EXPECT_EQ(tree.end(), ite);
+    for (int i = -1*size; i <= size; ++i) {
+        auto ite = tree.find(i);
+        EXPECT_EQ(i, *ite);
+    }
 }
 
 TEST_F(IntRBTreeTest, SizeTest) {
-    EXPECT_EQ(2001, tree.size());
+    EXPECT_EQ(2*size+1, tree.size());
+}
+
+TEST_F(IntRBTreeTest, DeleteTest) {
+    for (int i = -1*size; i <= size; ++i) {
+        tree.deleteNode(i);
+        auto ite = tree.find(i);
+        EXPECT_EQ(tree.end(), ite);
+    }
 }
 
 #endif
