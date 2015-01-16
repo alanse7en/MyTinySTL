@@ -535,7 +535,34 @@ namespace TinySTL {
             return end();
         }
         
-        std::pair< iterator, bool> insert_unique(const Value& v);
+        std::pair< iterator, bool> insert_unique(const Value& v) {
+            iterator ite = find( KeyOfValue()(v) );
+            if (ite != end())
+                return std::pair<iterator,bool>(ite,false);
+            
+            else
+            {
+                link_type tmp =  __insert(root(), v);
+                tmp->parent = header;
+                tmp->color = __rb_tree_black;
+                header->parent = tmp;
+                // Change leftmost
+                while (tmp->left != 0) {
+                    tmp = tmp->left;
+                }
+                header->left = tmp;
+                // Change rightmost
+                tmp = root();
+                while (tmp->right != 0) {
+                    tmp = tmp->right;
+                }
+                header->right = tmp;
+                // Add node count number
+                ++node_count;
+                iterator result = find( KeyOfValue()(v) );
+                return std::pair<iterator,bool>(result,true);
+            }
+        }
         
         iterator insert_equal( const Value& v) {
             link_type tmp =  __insert(root(), v);
@@ -555,7 +582,8 @@ namespace TinySTL {
             header->right = tmp;
             // Add node count number
             ++node_count;
-            return tmp;
+            iterator result = find( KeyOfValue()(v) );
+            return result;
         }
         
         void deleteNode(Key k) {

@@ -44,6 +44,23 @@ TEST_F(IntRBTreeTest, SizeTest) {
     EXPECT_EQ(2*size+1, tree.size());
 }
 
+TEST_F(IntRBTreeTest, InsertEqualTest) {
+    auto ite = tree.insert_equal(1e4);
+    EXPECT_EQ(1e4, *ite);
+    tree.deleteNode(1);
+    ite = tree.insert_equal(1);
+    EXPECT_EQ(1, *ite);
+}
+
+TEST_F(IntRBTreeTest, InsertUniqueTest) {
+    auto ite = tree.insert_unique(1e4);
+    EXPECT_EQ(1e4, *(ite.first));
+    EXPECT_EQ(true, ite.second);
+    ite = tree.insert_unique(1);
+    EXPECT_EQ(1, *(ite.first));
+    EXPECT_EQ(false,ite.second);
+}
+
 TEST_F(IntRBTreeTest, DeleteTest) {
     for (int i = -1*size; i <= size; ++i) {
         tree.deleteNode(i);

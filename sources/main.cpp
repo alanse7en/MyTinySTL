@@ -2,6 +2,7 @@
 #include "vectorTest.h"
 #include "listTest.h"
 #include "rb_treeTest.h"
+#include "setTest.h"
 
 
 
