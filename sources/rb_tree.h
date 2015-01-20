@@ -509,6 +509,20 @@ namespace TinySTL {
             return fixUp(h);
         }
         
+        bool isSameTree(link_type p, link_type q) {
+            if(p && q){
+                if(p->value == q->value){
+                    return (isSameTree(p->left, q->left) && isSameTree(p->right, q->right));
+                }
+                else
+                    return false;
+            }
+            else if(p == NULL && q == NULL)
+                return true;
+            else
+                return false;
+        }
+        
     public:
         rb_tree(const Compare& comp = Compare())
         : node_count(0), key_compare(comp) { init();}
@@ -623,7 +637,6 @@ namespace TinySTL {
             
             return ite;
         }
-
         
         const_iterator upper_bound(const Key& k) const {
             const_iterator ite = cbegin();
@@ -741,9 +754,13 @@ namespace TinySTL {
             }
             
         }
+        
+        bool operator==(const rb_tree& rhs) {
+            auto p = root(); auto q = rhs.root();
+            return isSameTree(p, q);
+        }
         // end of rb_tree
     };
-    
     // end of namespace
 }
 

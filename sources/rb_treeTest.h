@@ -110,4 +110,15 @@ TEST(TreeTest, SpeCase) {
     EXPECT_EQ(7, tmp.size());
 }
 
+TEST(TreeTest, EqualTest) {
+    TinySTL::rb_tree<int, int, TinySTL::identity<int>, TinySTL::less<int> > lhs;
+    TinySTL::rb_tree<int, int, TinySTL::identity<int>, TinySTL::less<int> > rhs;
+    int ia[] = {1,2,4,6,8,9};
+    lhs.insert_unique(ia, ia+6);
+    rhs.insert_unique(ia, ia+6);
+    EXPECT_EQ(true, lhs==rhs);
+    rhs.insert_unique(10);
+    EXPECT_EQ(false, lhs==rhs);
+}
+
 #endif
