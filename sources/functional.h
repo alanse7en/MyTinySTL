@@ -10,13 +10,9 @@
 #define test_functional_h
 
 namespace TinySTL {
-    struct identity {
-        template<typename U>
-        constexpr auto operator()(U&& v) const noexcept
-        -> decltype(std::forward<U>(v))
-        {
-            return std::forward<U>(v);
-        }
+    template <class T>
+    struct identity : public std::unary_function<T, T> {
+        const T& operator() (const T& x) const { return x;}
     };
     
     

@@ -21,7 +21,7 @@ typedef TinySTL::__rb_tree_iterator<int> iterator;
 
 class IntRBTreeTest : public testing::Test {
 public:
-    typedef TinySTL::rb_tree<int, int, TinySTL::identity, TinySTL::less<int> > IntTree;
+    typedef TinySTL::rb_tree<int, int, TinySTL::identity<int>, TinySTL::less<int> > IntTree;
     IntTree tree;
     int size;
     
@@ -36,6 +36,11 @@ public:
 TEST_F(IntRBTreeTest, FindTest) {
     for (int i = -1*size; i <= size; ++i) {
         auto ite = tree.find(i);
+        EXPECT_EQ(i, *ite);
+    }
+    const IntTree tmp(tree);
+    for (int i = -1*size; i <= size; ++i) {
+        auto ite = tmp.find(i);
         EXPECT_EQ(i, *ite);
     }
 }
@@ -62,11 +67,47 @@ TEST_F(IntRBTreeTest, InsertUniqueTest) {
 }
 
 TEST_F(IntRBTreeTest, DeleteTest) {
-    for (int i = -1*size; i <= size; ++i) {
-        tree.deleteNode(i);
-        auto ite = tree.find(i);
-        EXPECT_EQ(tree.end(), ite);
+    int n = 1;
+    for (int i = -1*size; i < size; ++i) {
+        auto res = tree.deleteNode(i);
+//        auto ite = tree.find(i);
+        EXPECT_EQ(i+1, *(res.first));
+        EXPECT_EQ(2*size+1-n, tree.size());
+        ++n;
     }
+    
+    auto ite = tree.deleteNode(1e4);
+    EXPECT_EQ(false, ite.second);
+}
+
+TEST_F(IntRBTreeTest, AssignOperatorTest) {
+    IntTree tmp;
+    tmp = tree;
+    tmp.insert_unique(size + 1);
+    EXPECT_EQ(2*size+1, tree.size());
+    EXPECT_EQ(2*size+2, tmp.size());
+}
+
+TEST_F(IntRBTreeTest, MoveAssignOperatorTest) {
+    IntTree tmp;
+    tmp = std::move(tree);
+    tmp.insert_unique(size + 1);
+    EXPECT_EQ(0, tree.size());
+    EXPECT_EQ(2*size+2, tmp.size());
+}
+
+TEST_F(IntRBTreeTest, ListAssignOperatorTest) {
+    EXPECT_EQ(2*size+1, tree.size());
+    std::initializer_list<int> ilist = {1,2,3};
+    tree = ilist;
+    EXPECT_EQ(ilist.size(), tree.size());
+}
+
+TEST(TreeTest, SpeCase) {
+    TinySTL::rb_tree<int, int, TinySTL::identity<int>, TinySTL::less<int> > tmp;
+    int ia[] = {1,2,3,4,5,7,8};
+    tmp.insert_unique(ia, ia+7);
+    EXPECT_EQ(7, tmp.size());
 }
 
 #endif

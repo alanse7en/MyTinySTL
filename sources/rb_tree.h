@@ -325,6 +325,20 @@ namespace TinySTL {
             return (link_type) __rb_tree_node<Value>::maximum(x);
         }
         
+    public:
+        void clear() {
+            iterator end(header);
+            for (iterator ite = leftmost(); ite!=end; ++ite) {
+                TinySTL::__destroy(&(*ite));
+                put_node(ite.node);
+                --node_count;
+            }
+            
+            header->left = header;
+            header->right = header;
+            header->parent = 0;
+        }
+        
     private:
         link_type __copy(link_type x, link_type p);
         void __erase(link_type x);
@@ -335,13 +349,6 @@ namespace TinySTL {
             root() = 0;
             leftmost() = header;
             rightmost() = header;
-        }
-        void clear() {
-            iterator end(header);
-            for (iterator ite = leftmost(); ite!=end; ++ite) {
-                TinySTL::__destroy(&(*ite));
-                put_node(ite.node);
-            }
         }
         
         link_type& rotateLeft(link_type h) {
@@ -437,7 +444,7 @@ namespace TinySTL {
                 h = rotateRight(h);
                 colorFlip(h);
             }
-            return h;
+            return (link_type&)h;
         }
         
         link_type deleteMin(link_type h)
@@ -477,6 +484,7 @@ namespace TinySTL {
                 }
                 if (cmp == 0 && (right(h) == 0)) {
                     destroy_node(h);
+                    --node_count;
                     return 0;
                 }
                 if (!isRed(right(h)) && !isRed(left(right(h))))
@@ -504,22 +512,48 @@ namespace TinySTL {
     public:
         rb_tree(const Compare& comp = Compare())
         : node_count(0), key_compare(comp) { init();}
-        rb_tree(const rb_tree& x) = delete;
+        rb_tree(const rb_tree& x) : node_count(0), key_compare(x.key_compare) {
+            init();
+            insert_unique(x.cbegin(), x.cend());
+        }
         ~rb_tree() {
             clear();
             put_node(header);
         }
         
-        rb_tree& operator=(const rb_tree& x) = delete;
+        rb_tree& operator=(const rb_tree& x) {
+            clear();
+            insert_unique(x.cbegin(),x.cend());
+            return *this;
+        }
+        rb_tree& operator=(rb_tree&& x) {
+            clear();
+            insert_unique(x.begin(),x.end() );
+            x.clear();
+            return *this;
+        }
+        
+        rb_tree& operator=(const std::initializer_list<value_type>& ilist) {
+            clear();
+            insert_unique(ilist.begin(),ilist.end() );
+            return *this;
+        }
+        
+        
+        
         Compare key_comp() const { return key_compare;}
         iterator begin() { return iterator(header->left);}
         iterator end() { return iterator(header);}
+        const_iterator begin() const { return const_iterator(header->left);}
+        const_iterator end() const { return const_iterator(header);}
+        const_iterator cbegin() const { return const_iterator(header->left);}
+        const_iterator cend() const { return const_iterator(header);}
+        
         bool empty() const { return node_count==0;}
         size_type size() const { return node_count;}
         size_type max_size() const { return size_type(-1);}
         
-        iterator find(const Key& k) {
-//            link_type y = header;
+        iterator find (const Key& k) {
             link_type x = root();
             
             while (x != 0) {
@@ -535,33 +569,73 @@ namespace TinySTL {
             return end();
         }
         
-        std::pair< iterator, bool> insert_unique(const Value& v) {
-            iterator ite = find( KeyOfValue()(v) );
-            if (ite != end())
-                return std::pair<iterator,bool>(ite,false);
+        const_iterator find(const Key& k) const {
+            link_type x = root();
             
-            else
-            {
-                link_type tmp =  __insert(root(), v);
-                tmp->parent = header;
-                tmp->color = __rb_tree_black;
-                header->parent = tmp;
-                // Change leftmost
-                while (tmp->left != 0) {
-                    tmp = tmp->left;
-                }
-                header->left = tmp;
-                // Change rightmost
-                tmp = root();
-                while (tmp->right != 0) {
-                    tmp = tmp->right;
-                }
-                header->right = tmp;
-                // Add node count number
-                ++node_count;
-                iterator result = find( KeyOfValue()(v) );
-                return std::pair<iterator,bool>(result,true);
+            while (x != 0) {
+                int cmp = key_compare(k, key(x));
+                if (cmp == 0)
+                    return const_iterator(x);
+                else if (cmp < 0)
+                    x = x->left;
+                else
+                    x = x->right;
             }
+            
+            return cend();
+        }
+        
+        iterator lower_bound(const Key& k) {
+            iterator ite = begin();
+            iterator end = end();
+            while (ite != end) {
+                if (*ite < k)
+                    ++ite;
+                else
+                    return ite;
+            }
+            
+            return ite;
+        }
+        
+        const_iterator lower_bound (const Key& k) const {
+            const_iterator ite = cbegin();
+            const_iterator end = cend();
+            while (ite != end) {
+                if (*ite < k)
+                    ++ite;
+                else
+                    return ite;
+            }
+            
+            return ite;
+        }
+        
+        iterator upper_bound(const Key& k) {
+            iterator ite = begin();
+            iterator end = end();
+            while (ite != end) {
+                if (*ite <= k)
+                    ++ite;
+                else
+                    return ite;
+            }
+            
+            return ite;
+        }
+
+        
+        const_iterator upper_bound(const Key& k) const {
+            const_iterator ite = cbegin();
+            const_iterator end = cend();
+            while (ite != end) {
+                if (*ite <= k)
+                    ++ite;
+                else
+                    return ite;
+            }
+            
+            return ite;
         }
         
         iterator insert_equal( const Value& v) {
@@ -586,8 +660,39 @@ namespace TinySTL {
             return result;
         }
         
-        void deleteNode(Key k) {
-//            iterator ite = find(k);
+        std::pair< iterator, bool> insert_unique(const Value& v) {
+            iterator ite = find( KeyOfValue()(v) );
+            if (ite != end())
+                return std::pair<iterator,bool>(ite,false);
+            
+            else
+            {
+                return std::pair<iterator,bool>(insert_equal(v),true);
+            }
+        }
+        
+        template <class InputIterator>
+        iterator insert_unique(InputIterator first, InputIterator last) {
+            InputIterator ite = first;
+            bool flag = true;
+            std::pair<iterator, bool> result;
+            
+            while (ite!=last && flag==true) {
+                result = insert_unique(*ite);
+                ++ite;
+                flag = result.second;
+            }
+            
+            return result.first;
+        }
+        
+        
+        
+        std::pair<iterator,bool> deleteNode(Key k) {
+            iterator ite = find(k);
+            if (ite==end())
+                return std::pair<iterator, bool>(ite,false);
+            ++ite;
             link_type tmp = deleteNode(root(), k);
             if (tmp != 0) {
                 tmp->color = __rb_tree_black;
@@ -602,14 +707,13 @@ namespace TinySTL {
                 while (tmp->right != 0)
                     tmp = tmp->right;
                 header->right = tmp;
-                // Decrease node count number
-                --node_count;
             }
             else {
                 header->parent = 0;
                 header->left  = header;
                 header->right = header;
             }
+            return std::pair<iterator, bool>(ite,true);
         }
         
         void deleteMin() {

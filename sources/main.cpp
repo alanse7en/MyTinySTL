@@ -3,7 +3,7 @@
 #include "listTest.h"
 #include "rb_treeTest.h"
 #include "setTest.h"
-
+#include <set>
 
 
 int main(int argc, char ** argv)
