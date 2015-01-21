@@ -25,6 +25,7 @@
 
 #include <cstddef>
 #include <utility>
+#include "functional.h"
 
 namespace TinySTL {
     typedef bool __rb_tree_color_type;
@@ -55,7 +56,6 @@ namespace TinySTL {
             return x;
         }
     };
-    
     
     /* Base iterator of red black tree */
     template < class Value>
@@ -128,17 +128,14 @@ namespace TinySTL {
             return tmp;
         }
         
+        bool operator==(const iterator& rhs) {
+            return node==rhs.node;
+        }
         
+        bool operator!=(const iterator& rhs) {
+            return node!=rhs.node;
+        }
     };
-    
-    template < class T>
-    bool operator==(const __rb_tree_iterator<T>& lhs,const __rb_tree_iterator<T>& rhs) {
-        return lhs.node==rhs.node;
-    }
-    template < class T>
-    bool operator!=(const __rb_tree_iterator<T>& lhs,const __rb_tree_iterator<T>& rhs) {
-        return lhs.node!=rhs.node;
-    }
     
     template < class Value>
     struct __rb_tree_const_iterator {
@@ -195,6 +192,7 @@ namespace TinySTL {
         __rb_tree_const_iterator(link_type x) { node = x;}
         __rb_tree_const_iterator(const const_iterator& ite) { node = ite.node;}
         __rb_tree_const_iterator(const iterator& ite) { node = ite.node;}
+        operator iterator() const { return iterator(node);}
         
         reference operator*() const { return node->value;}
         pointer operator->() const { return &(operator*());}
@@ -222,16 +220,7 @@ namespace TinySTL {
         }
     };
     
-    template < class T>
-    bool operator==(const __rb_tree_const_iterator<T>& lhs,const __rb_tree_const_iterator<T>& rhs) {
-        return lhs.node==rhs.node;
-    }
-    template < class T>
-    bool operator!=(const __rb_tree_const_iterator<T>& lhs,const __rb_tree_const_iterator<T>& rhs) {
-        return lhs.node!=rhs.node;
-    }
-    
-    template < class Key, class Value, class KeyOfValue, class Compare, class Alloc = TinySTL::alloc>
+    template < class Key, class Value, class KeyOfValue, class Compare = TinySTL::less<Key>, class Alloc = TinySTL::alloc>
     class rb_tree {
     protected:
         typedef void* void_pointer;
@@ -408,9 +397,9 @@ namespace TinySTL {
             
             
             Key k = KeyOfValue()(v);
-            int cmp = key_compare(k,key(x));
-            if (cmp == 0) x->value = v;
-            else if (cmp < 0) {
+            bool cmp = key_compare(k,key(x));
+            if (k == key(x)) x->value = v;
+            else if (cmp) {
                 link_type tmp = __insert(x->left, v);
                 x->left = tmp;
                 tmp->parent = x;
@@ -468,8 +457,8 @@ namespace TinySTL {
         
         link_type deleteNode(link_type h, Key k)
         {
-            int cmp = key_compare(k,key(h));
-            if (cmp < 0) {
+            bool cmp = key_compare(k,key(h));
+            if (cmp) {
                 if (!isRed(left(h)) && !isRed(left(left(h))))
                     h = moveRedLeft(h);
                 link_type tmp =  deleteNode(h->left, k);
@@ -480,9 +469,9 @@ namespace TinySTL {
             else {
                 if (isRed(left(h))) {
                     h = rotateRight(h);
-                    cmp = -1;
+//                    cmp = -1;
                 }
-                if (cmp == 0 && (right(h) == 0)) {
+                if (k == key(h) && (right(h) == 0)) {
                     destroy_node(h);
                     --node_count;
                     return 0;
@@ -490,7 +479,7 @@ namespace TinySTL {
                 if (!isRed(right(h)) && !isRed(left(right(h))))
                     h = moveRedRight(h);
                 
-                if (cmp == 0) {
+                if (k == key(h)) {
                     link_type tmp = minimum(h->right);
                     h->value = tmp->value;
                     tmp = deleteMin(h->right);
@@ -571,10 +560,10 @@ namespace TinySTL {
             link_type x = root();
             
             while (x != 0) {
-                int cmp = key_compare(k, key(x));
-                if (cmp == 0)
+                bool cmp = key_compare(k, key(x));
+                if (k == key(x))
                     return iterator(x);
-                else if (cmp < 0)
+                else if (cmp)
                     x = x->left;
                 else
                     x = x->right;
@@ -587,10 +576,10 @@ namespace TinySTL {
             link_type x = root();
             
             while (x != 0) {
-                int cmp = key_compare(k, key(x));
-                if (cmp == 0)
+                bool cmp = key_compare(k, key(x));
+                if (k == key(x))
                     return const_iterator(x);
-                else if (cmp < 0)
+                else if (cmp)
                     x = x->left;
                 else
                     x = x->right;
@@ -758,6 +747,10 @@ namespace TinySTL {
         bool operator==(const rb_tree& rhs) {
             auto p = root(); auto q = rhs.root();
             return isSameTree(p, q);
+        }
+        bool operator!=(const rb_tree& rhs) {
+            auto p = root(); auto q = rhs.root();
+            return !isSameTree(p, q);
         }
         // end of rb_tree
     };

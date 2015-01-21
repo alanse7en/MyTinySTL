@@ -10,6 +10,7 @@
 #define test_setTest_h
 
 #include "set.h"
+#include <gtest/gtest.h>
 //
 //class SetTest : public testing::Test {
 //public:
@@ -31,6 +32,14 @@ TEST(SetTest, ConstructorTest) {
     EXPECT_EQ(3, iset2.size());
     TinySTL::set<int> iset3(iset1);
     EXPECT_EQ(5, iset3.size());
+    TinySTL::set<int> iset4(std::move(iset1));
+    EXPECT_EQ(5, iset4.size());
+    EXPECT_EQ(0, iset1.size());
+    iset3 = iset2;
+    EXPECT_EQ(3, iset3.size());
+    iset3 = std::move(iset4);
+    EXPECT_EQ(5, iset3.size());
+    EXPECT_EQ(0, iset4.size());
 }
 
 TEST(SetTest, ClearTest) {
@@ -88,6 +97,15 @@ TEST(SetTest, BoundTest) {
     ite = iset.upper_bound(8);
     bool flag = (iset.end()==ite);
     EXPECT_EQ(true,flag);
+}
+
+TEST(SetTest, EqualTest) {
+    TinySTL::set<int> iset1({1,2,3});
+    TinySTL::set<int> iset2;
+    iset2.insert(1);iset2.insert(3);iset2.insert(2);
+    EXPECT_EQ(true, iset1==iset2);
+    iset2.insert(4);
+    EXPECT_EQ(false, iset1==iset2);
 }
 
 #endif

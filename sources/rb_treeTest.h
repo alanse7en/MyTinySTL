@@ -21,7 +21,7 @@ typedef TinySTL::__rb_tree_iterator<int> iterator;
 
 class IntRBTreeTest : public testing::Test {
 public:
-    typedef TinySTL::rb_tree<int, int, TinySTL::identity<int>, TinySTL::less<int> > IntTree;
+    typedef TinySTL::rb_tree<int, int, TinySTL::identity<int> > IntTree;
     IntTree tree;
     int size;
     
@@ -108,6 +108,9 @@ TEST(TreeTest, SpeCase) {
     int ia[] = {1,2,3,4,5,7,8};
     tmp.insert_unique(ia, ia+7);
     EXPECT_EQ(7, tmp.size());
+    auto ite = tmp.find(10);
+    bool flag = (ite==tmp.cend());
+    EXPECT_EQ(true, flag);
 }
 
 TEST(TreeTest, EqualTest) {

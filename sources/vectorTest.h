@@ -47,4 +47,10 @@ TEST_F(IntVectorTest, Constructors) {
     EXPECT_EQ(1e4, tmp.size()) << "The size of vector should be 1 instead of " << tmp.size();
 }
 
+TEST_F(IntVectorTest, EqualTest) {
+    v0.push_back(1);
+    EXPECT_EQ(true, v0==v1);
+    EXPECT_EQ(true, v0!=v2);
+}
+
 #endif

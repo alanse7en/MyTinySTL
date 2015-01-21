@@ -158,10 +158,28 @@ namespace TinySTL {
         template <typename... Args>
         void emplace_aux(iterator position, std::false_type, Args&&... args);
     public:
-        template<typename t, typename alloc>
-        friend bool operator== (const vector<t,alloc>& vec1, const vector<t,alloc>& vec2);
-        template<typename t, typename alloc>
-        friend bool operator!= (const vector<t,alloc>& vec1, const vector<t,alloc>& vec2);
+        bool operator== ( const vector& vec2) {
+            if (size() != vec2.size()) {
+                return false;
+            }
+            else {
+                auto ite1 = begin();
+                auto ite2 = vec2.begin();
+                for (size_type i = 0; i != size(); ++i) {
+                    if (*ite1 != *ite2) {
+                        return false;
+                    }
+                    else {
+                        ++ite1;
+                        ++ite2;
+                    }
+                }
+            return true;
+            }
+        }
+        bool operator!= ( const vector& vec2) {
+            return !(operator==(vec2));
+        }
     };
     
     template <typename T, typename Alloc>
@@ -498,31 +516,6 @@ namespace TinySTL {
     template <typename T, typename Alloc>
     void vector<T,Alloc>::resize(size_type n) {
         resize(n, T());
-    }
-    
-    template<typename t, typename alloc>
-    bool operator== (const vector<t,alloc>& vec1, const vector<t,alloc>& vec2) {
-        if (vec1.size() != vec2.size()) {
-            return false;
-        }
-        else {
-            auto ite1 = vec1.begin();
-            auto ite2 = vec2.begin();
-            for (typename vector<t,alloc>::size_type i = 0; i != vec1.size(); ++i) {
-                if (*ite1 != *ite2) {
-                    return false;
-                }
-                else {
-                    ++ite1;
-                    ++ite2;
-                }
-            }
-            return true;
-        }
-    }
-    template<typename t, typename alloc>
-    bool operator!= (const vector<t,alloc>& vec1, const vector<t,alloc>& vec2) {
-        return !(vec1==vec2);
     }
 //end of namespace
 }

@@ -3,7 +3,10 @@
 #include "listTest.h"
 #include "rb_treeTest.h"
 #include "setTest.h"
+#include "mapTest.h"
 #include <set>
+#include <vector>
+#include <string>
 
 
 int main(int argc, char ** argv)

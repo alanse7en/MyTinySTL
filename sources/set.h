@@ -108,7 +108,7 @@ namespace TinySTL {
         const_iterator lower_bound (const key_type& key) const { return tree.lower_bound(key);}
         const_iterator upper_bound (const key_type& key) const { return tree.upper_bound(key);}
         
-        bool operator==(const set& rhs) { return tree==rhs.tree;};
+        bool operator==(const set& rhs) { return tree==rhs.tree;}
         // End of class set
     };
     // End of namespace
